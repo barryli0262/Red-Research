@@ -36,7 +36,7 @@ mock_db = {
         "scores": [9, 3, 7, 8, 9],
         "risks": {"痒点": 45, "中雷": 35, "大雷": 15, "致命雷点": 5},
         "summary": "雷点主要集中在‘价格溢价’及‘特定发质适配’。这属于预期管理问题，而非产品硬伤。",
-        "consumer_view": "如果你追求极致性能且预算充足，可入；若追求性价比，此雷点对你而言是【大雷】。",
+        "consumer_view": "预算充足且追求性能可入；若追求性价比，此雷点对你而言是【大雷】。",
         "kol_view": "建议内容重点放在‘高效率生活’场景，避开‘省钱攻略’，可有效降低评论区噪音。",
         "brand_view": "识别到高频劝退因素为‘贵’。建议强化‘听劝改进’形象，增加售后延保权益以冲抵负面感。",
         "notes": [
@@ -72,7 +72,7 @@ mock_db = {
         "scores": [3, 9, 4, 10, 2],
         "risks": {"痒点": 5, "中雷": 15, "大雷": 30, "致命雷点": 50},
         "summary": "高频反馈‘过敏’与‘虚假宣传’。雷点已触及核心价值，属于信任基础动摇。",
-        "consumer_view": "这是【真雷】。无论促销力度多大，都不建议敏肌尝试，避雷建议采纳度：极高。",
+        "consumer_view": "这是【真雷】。无论促销多大都不建议敏肌尝试，避雷建议采纳度：极高。",
         "kol_view": "风险极大，建议暂时放弃该选题。若已发布，建议补充真实风险预警。",
         "brand_view": "必须立即停止滤镜营销，回归‘产品真相’，否则流失率不可逆。",
         "notes": [
@@ -86,7 +86,7 @@ mock_db = {
     }
 }
 
-# --- 侧边栏 (内容 1234 全量回归) ---
+# --- 侧边栏 ---
 with st.sidebar:
     st.markdown("<h2 style='color: #ff2442;'>🥔 避雷观察薯</h2>", unsafe_allow_html=True)
     st.markdown("<h1 style='text-align: center; font-size: 50px;'>🥔</h1>", unsafe_allow_html=True)
@@ -139,4 +139,50 @@ with col_right:
     st.write("### 📊 避雷痛痒分级分布")
     st.caption("基于评论严重性、可信度及出现频次综合计算")
     risk_df = pd.DataFrame({"风险等级": list(res["risks"].keys()), "占比": list(res["risks"].values())})
-    fig_risk = px.bar(risk_df, x="占比", y="风险等级", orientation='h',
+    # 此处修复了语法错误
+    fig_risk = px.bar(
+        risk_df, 
+        x="占比", 
+        y="风险等级", 
+        orientation='h', 
+        color="风险等级", 
+        color_discrete_map={"痒点":"#ffccd5","中雷":"#ffb3ba","大雷":"#ff8fa3","致命雷点":"#ff2442"}
+    )
+    fig_risk.update_layout(showlegend=False, height=350)
+    st.plotly_chart(fig_risk, use_container_width=True)
+
+st.write("---")
+st.write("### 🔍 角色化视角分析")
+t1, t2, t3 = st.tabs(["💡 消费者决策", "✍️ 达人内容助手", "🏢 品牌听劝看板"])
+with t1: st.info(res["consumer_view"])
+with t2: st.info(res["kol_view"])
+with t3: st.info(res["brand_view"])
+
+st.write("---")
+st.write(f"### 📱 相关避雷帖参考 ({target_brand})")
+rows = [res["notes"][i:i + 3] for i in range(0, 6, 3)]
+for row in rows:
+    cols = st.columns(3)
+    for i, note in enumerate(row):
+        with cols[i]:
+            st.markdown(f"""<div class="note-card"><span class="note-tag">#{note['tag']}</span><br><p style="margin-top:10px; font-weight:bold; font-size:14px;">{note['title']}</p><small style="color: #999;">刚刚 · 来自小红书</small></div>""", unsafe_allow_html=True)
+
+# --- 白皮书内容 ---
+st.write("---")
+with st.expander("📝 查看《避雷观察薯》产品设计白皮书 (PRD 核心)"):
+    st.markdown("""
+    ### 1. 产品核心价值
+    **避雷观察薯** 解决的是“决策瘫痪”。它将小红书海量的原始避雷帖，通过 AI 转化为**结构化、可分级、可决策**的判断结果。
+    
+    ### 2. 痛痒分级模型逻辑
+    系统根据评论的**失误严重性**、**重复频率**及**人群适配度**，将风险分为四级：
+    - **痒点**：轻微瑕疵，不影响核心功能。
+    - **中雷**：影响部分体验，取决于个人预期。
+    - **大雷**：核心体验不稳定，建议对比替代品。
+    - **致命雷点**：动摇信任基础，高风险预警。
+    
+    ### 3. 商业化潜力
+    - **C端（用户端）**：降低购买决策成本，提升避雷信息获取效率。
+    - **B端（品牌端）**：识别高频劝退因素，驱动品牌“听劝改进”，实现负评转正。
+    - **K端（创作者）**：提供客观、理性的风险坐标，辅助产出真诚且专业的测评内容。
+    """)
